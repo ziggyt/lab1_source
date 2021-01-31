@@ -20,66 +20,92 @@
 
 void sighandler() {
 
-	/* add signalhandling routines here */
-	/* see 'man 2 signal' */
+    /* add signalhandling routines here */
+    /* see 'man 2 signal' */
 }
 
 int main(int argc, char *argv[]) {
 
 //	passwd *passwddata; /* this has to be redefined in step 2 */
-	/* see pwent.h */
+    /* see pwent.h */
 
-	mypwent *passwddata;
+    mypwent *passwddata;
 
-	char important1[LENGTH] = "**IMPORTANT 1**";
+    char important1[LENGTH] = "**IMPORTANT 1**";
 
-	char user[LENGTH];
+    char user[LENGTH];
 
-	char important2[LENGTH] = "**IMPORTANT 2**";
+    char important2[LENGTH] = "**IMPORTANT 2**";
 
-	//char   *c_pass; //you might want to use this variable later...
-	char prompt[] = "password: ";
-	char *user_pass;
+    //char   *c_pass; //you might want to use this variable later...
+    char prompt[] = "password: ";
+    char *user_pass;
 
-	sighandler();
+    int login_attempts = 0;
 
-	while (TRUE) {
-		/* check what important variable contains - do not remove, part of buffer overflow test */
-		printf("Value of variable 'important1' before input of login name: %s\n",
-				important1);
-		printf("Value of variable 'important2' before input of login name: %s\n",
-				important2);
+    sighandler();
 
-		printf("login: ");
-		fflush(NULL); /* Flush all  output buffers */
-		__fpurge(stdin); /* Purge any data in stdin buffer */
+    while (TRUE) {
+        /* check what important variable contains - do not remove, part of buffer overflow test */
+        printf("Value of variable 'important1' before input of login name: %s\n",
+               important1);
+        printf("Value of variable 'important2' before input of login name: %s\n",
+               important2);
 
-		if (fgets(user, LENGTH, stdin) == NULL) /* gets() is vulnerable to buffer */
-			exit(0); /*  overflow attacks.  */
+        printf("login: ");
+        fflush(NULL); /* Flush all  output buffers */
+        __fpurge(stdin); /* Purge any data in stdin buffer */
 
-		/* check to see if important variable is intact after input of login name - do not remove */
-		printf("Value of variable 'important 1' after input of login name: %*.*s\n",
-				LENGTH - 1, LENGTH - 1, important1);
-		printf("Value of variable 'important 2' after input of login name: %*.*s\n",
-		 		LENGTH - 1, LENGTH - 1, important2);
+        char *res = fgets(user, LENGTH, stdin);
+//        res[sizeof(res)-1] = '\0';  //fix according to lab pm 4.1.3
+        user[sizeof(user) - 1] = '\0';
 
-		user_pass = getpass(prompt);
-		passwddata = mygetpwnam(user);
+        user[strcspn(user,
+                     "\n")] = '\0'; //stackoverflow https://stackoverflow.com/questions/41716738/issue-with-login-function-using-strcspn-and-fgets-in-c
 
-		if (passwddata != NULL) {
-			/* You have to encrypt user_pass for this to work */
-			/* Don't forget to include the salt */
+        printf("%s", user);
 
-			if (!strcmp(user_pass, passwddata->passwd)) { //  pw_passwd to passwd
 
-				printf(" You're in !\n");
+        if (res == NULL) /* gets() is vulnerable to buffer */
+            exit(0); /*  overflow attacks.  */
 
-				/*  check UID, see setuid(2) */
-				/*  start a shell, use execve(2) */
+        /* check to see if important variable is intact after input of login name - do not remove */
+        printf("Value of variable 'important 1' after input of login name: %*.*s\n",
+               LENGTH - 1, LENGTH - 1, important1);
+        printf("Value of variable 'important 2' after input of login name: %*.*s\n",
+               LENGTH - 1, LENGTH - 1, important2);
 
-			}
-		}
-		printf("Login Incorrect \n");
-	}
-	return 0;
+        user_pass = getpass(prompt);
+        passwddata = mygetpwnam(user);
+
+        if (passwddata != NULL) {
+            /* You have to encrypt user_pass for this to work */
+            /* Don't forget to include the salt */
+
+            if (!strcmp(user_pass, passwddata->passwd)) { //  pw_passwd to passwd
+
+                printf("You're in !\n");
+                printf("Previous login attempts: ");
+                printf("%d", passwddata->pwfailed);
+                printf("\n");
+
+                passwddata->pwage++; //todo make 0 after pw change
+
+                passwddata->pwfailed = 0;
+
+                /*  check UID, see setuid(2) */
+                /*  start a shell, use execve(2) */
+
+            } else {
+
+                printf("Login Incorrect \n");
+                passwddata->pwfailed++;
+                mysetpwent(user, passwddata);
+            }
+        }
+        login_attempts++;
+        printf("%d", login_attempts);
+        printf("\n");
+    }
+    return 0;
 }

@@ -28,8 +28,12 @@ mypwent *mygetpwnam(char *name) {
 	static mypwent ent = { pwname, 0, passwd, passwd_salt, 0, 0 };
 
 	/* Open file, return NULL if it failed. */
-	if ((file = fopen(MYPWENT_FILENAME, "rb")) == NULL)
-		return NULL;
+	if ((file = fopen(MYPWENT_FILENAME, "rb")) == NULL){
+        printf((const char *) "could not open file");
+        return NULL;
+	}
+
+
 
 	/* Read each line, looking for the right entry. */
 	while (fgets(buffer, sizeof(buffer), file) != NULL) {
