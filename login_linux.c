@@ -22,6 +22,10 @@ void sighandler() {
 
     /* add signalhandling routines here */
     /* see 'man 2 signal' */
+
+    signal(SIGINT, SIG_IGN);
+    signal(SIGKILL, SIG_IGN);
+    signal(SIGTERM, SIG_IGN);
 }
 
 int main(int argc, char *argv[]) {
@@ -41,11 +45,10 @@ int main(int argc, char *argv[]) {
     char prompt[] = "password: ";
     char *user_pass;
 
-    int login_attempts = 0;
-
     sighandler();
 
     while (TRUE) {
+
         /* check what important variable contains - do not remove, part of buffer overflow test */
         printf("Value of variable 'important1' before input of login name: %s\n",
                important1);
@@ -58,7 +61,6 @@ int main(int argc, char *argv[]) {
 
         char *res = fgets(user, LENGTH, stdin);
 //        res[sizeof(res)-1] = '\0';  //fix according to lab pm 4.1.3
-        user[sizeof(user) - 1] = '\0';
 
         user[strcspn(user,
                      "\n")] = '\0'; //stackoverflow https://stackoverflow.com/questions/41716738/issue-with-login-function-using-strcspn-and-fgets-in-c
@@ -82,7 +84,13 @@ int main(int argc, char *argv[]) {
             /* You have to encrypt user_pass for this to work */
             /* Don't forget to include the salt */
 
-            if (!strcmp(user_pass, passwddata->passwd)) { //  pw_passwd to passwd
+            if (passwddata->pwfailed >= 10) {
+                printf("Too many failed login attempts, exiting\n");
+                break;
+            }
+            char *salted_passwd = crypt(user_pass, passwddata->passwd_salt);
+
+            if (!strcmp(salted_passwd, passwddata->passwd)) { //  pw_passwd to passwd
 
                 printf("You're in !\n");
                 printf("Previous login attempts: ");
@@ -90,22 +98,28 @@ int main(int argc, char *argv[]) {
                 printf("\n");
 
                 passwddata->pwage++; //todo make 0 after pw change
-
                 passwddata->pwfailed = 0;
 
+                if (passwddata->pwage >= 10) {
+                    printf("You've used your password too many times, consider updating it \n");
+
+                }
+
                 /*  check UID, see setuid(2) */
-                /*  start a shell, use execve(2) */
+                /*  start a shell, use execve(2) */ //used system instead
+
+                setuid(passwddata->uid);
+                //printf("%d", getuid());
+                system((const char *) "/bin/sh");
 
             } else {
 
                 printf("Login Incorrect \n");
                 passwddata->pwfailed++;
                 mysetpwent(user, passwddata);
+
             }
         }
-        login_attempts++;
-        printf("%d", login_attempts);
-        printf("\n");
     }
     return 0;
 }
