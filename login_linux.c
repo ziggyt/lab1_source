@@ -112,7 +112,7 @@ int main(int argc, char *argv[]) {
                     char new_password_conf [LENGTH];
                     fgets(new_password_conf, LENGTH, stdin);
 
-                    if(!strcmp(new_password, new_password_conf)){
+                    if(!strcmp(new_password, new_password_conf)){ //todo detta verkar aldrig k;ra
                         passwddata->passwd = crypt(new_password, passwddata->passwd_salt);
                         mysetpwent(passwddata->pwname, passwddata);
                         printf("\nPassword updated!");
