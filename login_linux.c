@@ -62,10 +62,9 @@ int main(int argc, char *argv[]) {
         char *res = fgets(user, LENGTH, stdin);
 //        res[sizeof(res)-1] = '\0';  //fix according to lab pm 4.1.3
 
-        user[strcspn(user,
-                     "\n")] = '\0'; //stackoverflow https://stackoverflow.com/questions/41716738/issue-with-login-function-using-strcspn-and-fgets-in-c
+        user[strcspn(user,"\n")] = '\0';
 
-        printf("%s", user);
+//        printf("%s", user);
 
 
         if (res == NULL) /* gets() is vulnerable to buffer */
@@ -99,11 +98,30 @@ int main(int argc, char *argv[]) {
 
                 passwddata->pwage++; //todo make 0 after pw change
                 passwddata->pwfailed = 0;
+                mysetpwent(passwddata->pwname, passwddata);
 
                 if (passwddata->pwage >= 10) {
-                    printf("You've used your password too many times, consider updating it \n");
+                    printf("You've used your password too many times, please update it \n");
+                    printf("Enter Password: ");
 
-                }
+                    char new_password [LENGTH];
+                    fgets(new_password, LENGTH, stdin);
+
+                    printf("\nPlease confirm password: ");
+
+                    char new_password_conf [LENGTH];
+                    fgets(new_password_conf, LENGTH, stdin);
+
+                    if(!strcmp(new_password, new_password_conf)){
+                        passwddata->passwd = crypt(new_password, passwddata->passwd_salt);
+                        mysetpwent(passwddata->pwname, passwddata);
+                        printf("\nPassword updated!");
+                        passwddata->pwage = 0;
+                        } else{
+                            printf("Could not update password");
+                        }
+
+                    }
 
                 /*  check UID, see setuid(2) */
                 /*  start a shell, use execve(2) */ //used system instead
