@@ -65,7 +65,7 @@ int main(int argc, char *argv[]) {
         char *res = fgets(user, LENGTH, stdin);
 //        res[sizeof(res)-1] = '\0';  //fix according to lab pm 4.1.3
 
-        user[strcspn(user,"\n")] = '\0';
+        user[strcspn(user, "\n")] = '\0';
 
 //        printf("%s", user);
 
@@ -107,29 +107,29 @@ int main(int argc, char *argv[]) {
                     printf("You've used your password too many times, please update it! \n");
                     printf("Enter new password: ");
 
-                    char new_password [LINE_BUFFER_LENGTH];
+                    char new_password[LINE_BUFFER_LENGTH];
                     fgets(new_password, LINE_BUFFER_LENGTH, stdin);
 
                     printf("Please confirm new password: ");
 
-                    char new_password_conf [LINE_BUFFER_LENGTH];
+                    char new_password_conf[LINE_BUFFER_LENGTH];
                     fgets(new_password_conf, LINE_BUFFER_LENGTH, stdin);
 
 
-                    if(!strcmp(new_password, new_password_conf)){ //todo detta verkar aldrig k;ra
-                        printf ("%s\n", "Password updated!");
+                    if (!strcmp(new_password, new_password_conf)) {
+                        printf("%s\n", "Password updated!");
 
-                        new_password[strcspn(new_password,"\n")] = '\0';
+                        new_password[strcspn(new_password, "\n")] = '\0';
                         passwddata->passwd = crypt(new_password, passwddata->passwd_salt);
                         passwddata->pwage = 0;
 
                         mysetpwent(passwddata->pwname, passwddata);
 
-                        } else{
-                            printf ("%s\n", "Could not update password");
-                        }
-
+                    } else {
+                        printf("%s\n", "Could not update password");
                     }
+
+                }
 
                 /*  check UID, see setuid(2) */
                 /*  start a shell, use execve(2) */ //used system instead
