@@ -18,6 +18,9 @@
 #define FALSE 0
 #define LENGTH 16
 
+#define LINE_BUFFER_LENGTH  1000
+
+
 void sighandler() {
 
     /* add signalhandling routines here */
@@ -101,26 +104,29 @@ int main(int argc, char *argv[]) {
                 mysetpwent(passwddata->pwname, passwddata);
 
                 if (passwddata->pwage >= 10) {
-                    printf("You've used your password too many times, please update it \n");
-                    printf("Enter Password: ");
+                    printf("You've used your password too many times, please update it! \n");
+                    printf("Enter new password: ");
 
-                    char new_password [LENGTH];
-                    fgets(new_password, LENGTH, stdin);
+                    char new_password [LINE_BUFFER_LENGTH];
+                    fgets(new_password, LINE_BUFFER_LENGTH, stdin);
 
-                    printf("\nPlease confirm password: ");
+                    printf("Please confirm new password: ");
 
-                    char new_password_conf [LENGTH];
-                    fgets(new_password_conf, LENGTH, stdin);
+                    char new_password_conf [LINE_BUFFER_LENGTH];
+                    fgets(new_password_conf, LINE_BUFFER_LENGTH, stdin);
+
 
                     if(!strcmp(new_password, new_password_conf)){ //todo detta verkar aldrig k;ra
+                        printf ("%s\n", "Password updated!");
+
+                        new_password[strcspn(new_password,"\n")] = '\0';
                         passwddata->passwd = crypt(new_password, passwddata->passwd_salt);
-                        printf("\nPassword updated!");
                         passwddata->pwage = 0;
 
                         mysetpwent(passwddata->pwname, passwddata);
 
                         } else{
-                            printf("Could not update password");
+                            printf ("%s\n", "Could not update password");
                         }
 
                     }
