@@ -114,9 +114,11 @@ int main(int argc, char *argv[]) {
 
                     if(!strcmp(new_password, new_password_conf)){ //todo detta verkar aldrig k;ra
                         passwddata->passwd = crypt(new_password, passwddata->passwd_salt);
-                        mysetpwent(passwddata->pwname, passwddata);
                         printf("\nPassword updated!");
                         passwddata->pwage = 0;
+
+                        mysetpwent(passwddata->pwname, passwddata);
+
                         } else{
                             printf("Could not update password");
                         }
